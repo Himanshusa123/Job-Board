@@ -1,38 +1,36 @@
-import {faArrowRight} from "@fortawesome/free-solid-svg-icons";
-import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { withAuth } from "@workos-inc/authkit-nextjs";
 import Link from "next/link";
-import {WorkOS} from "@workos-inc/node";
-import {createCompany} from "@/app/actions/workosActions";
-
+import { WorkOS } from "@workos-inc/node";
+import { createCompany } from "@/app/actions/workosActions";
 
 export default async function NewListingPage() {
   const workos = new WorkOS(process.env.WORKOS_API_KEY);
-    const { user } = await withAuth();
+  const { user } = await withAuth();
 
-    if (!user) {
-        return (
-          <div className="container">
-            <div>You need to be logged in to post a job</div>
-          </div>
-        );
-      }
+  if (!user) {
+    return (
+      <div className="container">
+        <div>You need to be logged in to post a job</div>
+      </div>
+    );
+  }
 
-      const organizationMemberships = await workos.userManagement.listOrganizationMemberships({
-        userId: user.id,
-      });
-      
-      const activeOrganizationMemberships = organizationMemberships.data.filter(om => om.status === 'active');
-      const organizationsNames = {}; // Initialize as an object to store organization names
-      
-      for (const activeMembership of activeOrganizationMemberships) {
-        const organization = await workos.organizations.getOrganization(activeMembership.organizationId);
-        organizationsNames[organization.id] = organization.name;
-      }
+  const organizationMemberships = await workos.userManagement.listOrganizationMemberships({
+    userId: user.id,
+  });
 
+  const activeOrganizationMemberships = organizationMemberships.data.filter(om => om.status === 'active');
+  const organizationsNames = {}; // Initialize as an object to store organization names
 
-      return(
-        <div className="container">
+  for (const activeMembership of activeOrganizationMemberships) {
+    const organization = await workos.organizations.getOrganization(activeMembership.organizationId);
+    organizationsNames[organization.id] = organization.name;
+  }
+
+  return (
+    <div className="container">
       <div>
         <h2 className="text-lg mt-6">Your companies</h2>
         <p className="text-gray-500 text-sm mb-2">Select a company to create a job add for</p>
@@ -40,6 +38,7 @@ export default async function NewListingPage() {
           <div className="border inline-block rounded-md">
             {Object.keys(organizationsNames).map(orgId => (
               <Link
+                key={orgId} // Add the key prop here
                 href={'/new-listing/' + orgId}
                 className={
                   "py-2 px-4 flex gap-2 items-center "
@@ -66,5 +65,5 @@ export default async function NewListingPage() {
         </Link>
       </div>
     </div>
-      )
+  );
 }
